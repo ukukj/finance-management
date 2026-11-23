@@ -1,0 +1,21 @@
+style:
+  MaxLineLength:
+    active: false
+  WildcardImport:
+    active: false
+  NewLineAtEndOfFile:
+    active: false
+  ForbiddenComment:
+    comments:
+      - reason: 'Forbidden FIXME todo marker in comment, please fix the problem.'
+        value: '\bFIXME\b'
+      - reason: 'Forbidden STOPSHIP todo marker in comment, please address the problem before shipping the code.'
+        value: '\bSTOPSHIP\b'
+      - reason: 'Forbidden TODO todo marker in comment, please do the changes.'
+        value: '\bTODO\b'
+empty-blocks:
+  EmptyKotlinFile:
+    active: false
+performance:
+  SpreadOperator:
+    excludes: ['**/test/**', '**/DashboardApplication.kt']
