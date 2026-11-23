@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/investment
+    username: investment
+    password: investment
+
+springdoc:
+  api-docs:
+    enabled: true
+
+app:
+  cookie:
+    secure: false
