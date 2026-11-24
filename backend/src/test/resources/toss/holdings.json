@@ -1,0 +1,123 @@
+{
+  "result": {
+    "totalPurchaseAmount": {
+      "krw": "2420460",
+      "usd": null
+    },
+    "marketValue": {
+      "amount": {
+        "krw": "2312100",
+        "usd": null
+      },
+      "amountAfterCost": {
+        "krw": "2310037",
+        "usd": null
+      }
+    },
+    "profitLoss": {
+      "amount": {
+        "krw": "-108360",
+        "usd": null
+      },
+      "amountAfterCost": {
+        "krw": "-110423",
+        "usd": null
+      },
+      "rate": "-0.0448",
+      "rateAfterCost": "-0.0456"
+    },
+    "dailyProfitLoss": {
+      "amount": {
+        "krw": "12000",
+        "usd": null
+      },
+      "rate": "0.0052"
+    },
+    "items": [
+      {
+        "symbol": "900110",
+        "name": "가나전자",
+        "marketCountry": "KR",
+        "currency": "KRW",
+        "quantity": "12",
+        "lastPrice": "41500",
+        "averagePurchasePrice": "45200",
+        "marketValue": {
+          "purchaseAmount": "542400",
+          "amount": "498000",
+          "amountAfterCost": "496800"
+        },
+        "profitLoss": {
+          "amount": "-44400",
+          "amountAfterCost": "-45600",
+          "rate": "-0.0819",
+          "rateAfterCost": "-0.0841"
+        },
+        "dailyProfitLoss": {
+          "amount": "6000",
+          "rate": "0.0122"
+        },
+        "cost": {
+          "commission": "75",
+          "tax": "1125"
+        }
+      },
+      {
+        "symbol": "900220",
+        "name": "다라은행",
+        "marketCountry": "KR",
+        "currency": "KRW",
+        "quantity": "30",
+        "lastPrice": "9870",
+        "averagePurchasePrice": "10350.5",
+        "marketValue": {
+          "purchaseAmount": "310515",
+          "amount": "296100",
+          "amountAfterCost": "295464"
+        },
+        "profitLoss": {
+          "amount": "-14415",
+          "amountAfterCost": "-15051",
+          "rate": "-0.0464",
+          "rateAfterCost": "-0.0485"
+        },
+        "dailyProfitLoss": {
+          "amount": "1500",
+          "rate": "0.0051"
+        },
+        "cost": {
+          "commission": "44",
+          "tax": "592"
+        }
+      },
+      {
+        "symbol": "0000A0",
+        "name": "마바 테스트 ETF",
+        "marketCountry": "KR",
+        "currency": "KRW",
+        "quantity": "150",
+        "lastPrice": "10120",
+        "averagePurchasePrice": "10450.3",
+        "marketValue": {
+          "purchaseAmount": "1567545",
+          "amount": "1518000",
+          "amountAfterCost": "1517773"
+        },
+        "profitLoss": {
+          "amount": "-49545",
+          "amountAfterCost": "-49772",
+          "rate": "-0.0316",
+          "rateAfterCost": "-0.0318"
+        },
+        "dailyProfitLoss": {
+          "amount": "4500",
+          "rate": "0.0030"
+        },
+        "cost": {
+          "commission": "227",
+          "tax": null
+        }
+      }
+    ]
+  }
+}

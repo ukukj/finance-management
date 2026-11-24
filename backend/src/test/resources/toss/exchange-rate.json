@@ -1,0 +1,12 @@
+{
+  "result": {
+    "baseCurrency": "USD",
+    "quoteCurrency": "KRW",
+    "rate": "1365.2",
+    "midRate": "1364.9",
+    "basisPoint": "1",
+    "rateChangeType": "UP",
+    "validFrom": "2025-06-27T09:10:00.000+09:00",
+    "validUntil": "2025-06-27T09:14:59.000+09:00"
+  }
+}
