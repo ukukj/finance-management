@@ -77,7 +77,6 @@ class ArchitectureTest {
     fun main_fields_are_not_double_or_float() {
         fields().that().areDeclaredInClassesThat().resideInAPackage("com.investment.dashboard..")
             .should(notHaveTypeInvolvingDoubleOrFloat)
-            .allowEmptyShould(true)
             .check(mainClasses)
     }
 
@@ -98,7 +97,6 @@ class ArchitectureTest {
             .orShould().callMethod(RestClient::class.java, "patch")
             .orShould().callMethod(RestClient::class.java, "delete")
             .orShould().callMethod(RestClient::class.java, "method", HttpMethod::class.java)
-            .allowEmptyShould(true)
             .check(mainClasses)
     }
 
@@ -107,7 +105,6 @@ class ArchitectureTest {
     fun toss_posts_only_from_issue_token() {
         classes().that().resideInAPackage("..toss..")
             .should(callRestClientPostOnlyFromIssueToken)
-            .allowEmptyShould(true)
             .check(mainClasses)
     }
 
@@ -122,7 +119,6 @@ class ArchitectureTest {
             .orShould().dependOnClassesThat().areAssignableTo("java.net.URLConnection")
             .orShould().dependOnClassesThat().areAssignableTo("org.springframework.web.client.RestOperations")
             .orShould().dependOnClassesThat().resideInAPackage("org.springframework.web.service..")
-            .allowEmptyShould(true)
             .check(mainClasses)
     }
 
