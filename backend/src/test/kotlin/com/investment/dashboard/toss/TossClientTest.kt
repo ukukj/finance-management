@@ -412,7 +412,8 @@ class TossClientTest {
 
         val error = catchThrowable { client.allTransactions(1L) }
 
-        assertThat(error).isInstanceOf(IllegalStateException::class.java).hasMessage("토스 응답에 nextCursor 값 없음")
+        assertThat(error).isInstanceOf(TossMalformedResponseException::class.java)
+            .hasMessage("토스 응답에 nextCursor 값 없음")
         server.verify()
     }
 

@@ -57,7 +57,6 @@ class ArchitectureTest {
         classes().that().areAnnotatedWith(Entity::class.java)
             .or().areAnnotatedWith(Embeddable::class.java)
             .should(notBeDataClasses)
-            .allowEmptyShould(true)
             .check(mainClasses)
     }
 
@@ -68,7 +67,6 @@ class ArchitectureTest {
             .or().areDeclaredInClassesThat().areAnnotatedWith(Embeddable::class.java)
             .and().areNotStatic()
             .should().notBeFinal()
-            .allowEmptyShould(true)
             .check(mainClasses)
     }
 
