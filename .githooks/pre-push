@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+check="$(git rev-parse --show-toplevel)/scripts/leak-check.sh"
+zero=0000000000000000000000000000000000000000
+
+while read -r _ local_sha _ _; do
+    if [[ "$local_sha" != "$zero" ]]; then
+        "$check" range "$local_sha" --not --remotes
+    fi
+done
