@@ -43,6 +43,6 @@ class Account(
     @Column(comment = "ISA 계약 만기일")
     var isaMaturityDate: LocalDate? = null
 
-    @Column(comment = "올해 이전 누적 납입액 (원, ISA 이월 한도 계산용)")
+    @Column(comment = "앱 기록 이전 누적 납입액 (원, ISA 이월 한도 계산용)")
     var priorContributionTotal: BigDecimal = BigDecimal.ZERO
 }
