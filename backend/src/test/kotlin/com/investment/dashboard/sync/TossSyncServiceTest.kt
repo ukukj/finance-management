@@ -5,6 +5,8 @@ import com.investment.dashboard.account.Account
 import com.investment.dashboard.account.AccountKind
 import com.investment.dashboard.account.AccountRepository
 import com.investment.dashboard.account.Broker
+import com.investment.dashboard.dividend.DividendProfileRepository
+import com.investment.dashboard.dividend.ProfileSource
 import com.investment.dashboard.fx.FxRateRepository
 import com.investment.dashboard.holding.HoldingRepository
 import com.investment.dashboard.ledger.LedgerEntry
@@ -78,10 +80,14 @@ class TossSyncServiceTest {
     lateinit var syncRunRepository: SyncRunRepository
 
     @Autowired
+    lateinit var profileRepository: DividendProfileRepository
+
+    @Autowired
     lateinit var jdbc: JdbcTemplate
 
     @BeforeEach
     fun reset() {
+        profileRepository.deleteAllInBatch()
         ledgerRepository.deleteAllInBatch()
         holdingRepository.deleteAllInBatch()
         accountRepository.deleteAllInBatch()
@@ -386,6 +392,46 @@ class TossSyncServiceTest {
         assertThat(jdbc.queryForObject(SYNC_ADVISORY_LOCK_COUNT_SQL, Int::class.java)).isZero()
     }
 
+    @Test
+    @DisplayName("동기화 뒤 배당 이력이 있는 보유 종목에 AUTO 배당 정보가 생긴다")
+    fun sync_creates_auto_profile_for_held_symbol_with_dividend_history() {
+        clock.set(OffsetDateTime.parse("2025-06-15T10:00+09:00").toInstant())
+        fake.givenHoldings(twoHoldings)
+        fake.givenTransactions(threeRows)
+
+        syncService.run(SyncTrigger.MANUAL)
+
+        val tossAccountId = accountRepository.findByTossAccountSeq(1L)!!.id!!
+        val profile = profileRepository.findByAccountIdAndSymbol(tossAccountId, "900110")
+        assertThat(profile?.source).isEqualTo(ProfileSource.AUTO)
+        assertThat(profile?.perShare).isEqualByComparingTo("300")
+        assertThat(profile?.payMonthSet()).containsExactly(5)
+    }
+
+    @Test
+    @DisplayName("보유 종목 매수 행에 수량이 없으면 FAILED 로 기록하고 예외를 다시 던지며 이전 보유종목·원장·배당 정보가 그대로 남는다")
+    fun trade_without_quantity_fails_and_keeps_previous_snapshot_and_profiles() {
+        clock.set(OffsetDateTime.parse("2025-06-15T10:00+09:00").toInstant())
+        fake.givenHoldings(twoHoldings)
+        fake.givenTransactions(threeRows)
+        syncService.run(SyncTrigger.MANUAL)
+        fake.givenHoldings(listOf(ganaElectronics))
+        fake.givenTransactions(listOf(buyGanaElectronicsWithoutQuantity, ganaElectronicsDividend))
+
+        val thrown = catchThrowable { syncService.run(SyncTrigger.MANUAL) }
+
+        assertThat(thrown).isInstanceOf(IllegalStateException::class.java)
+            .hasMessage("수량 없는 BUY 행: 900110 2025-05-30")
+        assertThat(syncRunRepository.findAll().filter { it.status == SyncStatus.FAILED })
+            .singleElement().extracting { it.failureReason }.isEqualTo("동기화 실패: 예상하지 못한 오류")
+        assertThat(holdingRepository.count()).isEqualTo(2L)
+        assertThat(ledgerRepository.count()).isEqualTo(3L)
+        val tossAccountId = accountRepository.findByTossAccountSeq(1L)!!.id!!
+        val profile = profileRepository.findByAccountIdAndSymbol(tossAccountId, "900110")
+        assertThat(profile?.source).isEqualTo(ProfileSource.AUTO)
+        assertThat(profile?.perShare).isEqualByComparingTo("300")
+    }
+
     private fun manualDeposit(accountId: Long) =
         LedgerEntry(accountId, LedgerEntryType.DEPOSIT, "KRW", LocalDate.parse("2026-03-02"), LedgerSource.MANUAL)
             .apply {
@@ -424,6 +470,8 @@ private val buyGanaElectronics =
     tossTransaction("BUY", symbol = "900110", assetClass = "STOCK", quantity = "15", amount = "678000")
 private val buyTestEtf =
     tossTransaction("BUY", symbol = "0000A0", assetClass = "STOCK", quantity = "40", amount = "415200")
+private val buyGanaElectronicsWithoutQuantity =
+    tossTransaction("BUY", symbol = "900110", assetClass = "STOCK", amount = "678000")
 private val ganaElectronicsDividend =
     tossTransaction("DIVIDEND", symbol = "900110", assetClass = "STOCK", amount = "4500")
 private val threeRows = listOf(buyGanaElectronics, buyTestEtf, ganaElectronicsDividend)
