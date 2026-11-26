@@ -10,6 +10,8 @@ interface LedgerEntryRepository : JpaRepository<LedgerEntry, Long> {
 
     fun findByTypeAndSettlementDateBetween(type: LedgerEntryType, from: LocalDate, to: LocalDate): List<LedgerEntry>
 
+    fun findByType(type: LedgerEntryType): List<LedgerEntry>
+
     @Modifying
     @Query("delete from LedgerEntry e where e.accountId = :accountId and e.source = :source")
     fun deleteByAccountIdAndSource(accountId: Long, source: LedgerSource)
