@@ -21,6 +21,16 @@ springdoc:
     enabled: false
 
 app:
+  auth:
+    username: ${APP_LOGIN_USERNAME:}
+    password-hash: ${APP_LOGIN_PASSWORD_HASH:}
+    jwt-secret: ${APP_JWT_SECRET:}
+    access-token-ttl: 30m
+    refresh-token-ttl: 30d
+    max-failures: 5
+    lock-minutes: 15
+  cookie:
+    secure: true
   toss:
     base-url: https://openapi.tossinvest.com
     client-id: ${TOSS_CLIENT_ID:}
