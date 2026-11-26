@@ -66,3 +66,9 @@ class LedgerEntry(
     @Column(comment = "메모")
     var memo: String? = null
 }
+
+fun LedgerEntry.isValidDividend(today: LocalDate): Boolean {
+    val gross = amount
+    return type == LedgerEntryType.DIVIDEND && !isCancellation && !settlementDate.isAfter(today) &&
+        gross != null && gross.signum() > 0 && netAmount != null
+}

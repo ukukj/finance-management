@@ -3,7 +3,7 @@ package com.investment.dashboard.dividend
 import com.investment.dashboard.account.AccountKind
 import com.investment.dashboard.holding.Holding
 import com.investment.dashboard.ledger.LedgerEntry
-import com.investment.dashboard.ledger.LedgerEntryType
+import com.investment.dashboard.ledger.isValidDividend
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -13,9 +13,8 @@ object DividendEstimator {
 
     fun autoProfile(entries: List<LedgerEntry>, symbol: String, today: LocalDate): AutoProfile? {
         val payouts = entries
-            .filter { it.type == LedgerEntryType.DIVIDEND && it.symbol == symbol && !it.isCancellation }
-            .mapNotNull { it.toPayout() }
-            .filter { !it.date.isAfter(today) }
+            .filter { it.symbol == symbol && it.isValidDividend(today) }
+            .map { it.toPayout() }
         val windowStart = today.minusMonths(RECENT_MONTHS)
         val recent = payouts.filter { it.date.isAfter(windowStart) }
         val latestHeld = payouts.groupBy { it.date }.entries
@@ -65,11 +64,8 @@ private class HeldRound(val date: LocalDate, sameDay: List<Payout>, val quantity
     val currency: String = sameDay.first().currency
 }
 
-private fun LedgerEntry.toPayout(): Payout? {
-    val gross = amount?.takeIf { it.signum() > 0 }
-    val net = netAmount
-    return if (gross == null || net == null) null else Payout(settlementDate, gross, net, currency)
-}
+private fun LedgerEntry.toPayout(): Payout =
+    Payout(settlementDate, checkNotNull(amount), checkNotNull(netAmount), currency)
 
 private const val RECENT_MONTHS = 12L
 private const val RATIO_SCALE = 6
