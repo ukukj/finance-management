@@ -1,0 +1,30 @@
+CREATE TABLE tax_rule (
+    id       bigserial PRIMARY KEY,
+    year     int            NOT NULL,
+    rule_key varchar(60)    NOT NULL,
+    value    numeric(20, 6) NOT NULL,
+    UNIQUE (year, rule_key)
+);
+
+COMMENT ON TABLE tax_rule IS '세법 값 (연도별 한도·세율)';
+COMMENT ON COLUMN tax_rule.id IS '식별자';
+COMMENT ON COLUMN tax_rule.year IS '적용 연도';
+COMMENT ON COLUMN tax_rule.rule_key IS '항목 키';
+COMMENT ON COLUMN tax_rule.value IS '값 (금액은 원, 비율은 소수)';
+
+INSERT INTO tax_rule (year, rule_key, value) VALUES
+    (2026, 'PENSION_SAVINGS_CREDIT_LIMIT', 6000000),
+    (2026, 'PENSION_IRP_CREDIT_LIMIT', 9000000),
+    (2026, 'PENSION_CONTRIBUTION_LIMIT', 18000000),
+    (2026, 'CREDIT_RATE_LOW_INCOME', 0.165),
+    (2026, 'CREDIT_RATE_HIGH_INCOME', 0.132),
+    (2026, 'CREDIT_RATE_SALARY_THRESHOLD', 55000000),
+    (2026, 'ISA_ANNUAL_LIMIT', 20000000),
+    (2026, 'ISA_TOTAL_LIMIT', 100000000),
+    (2026, 'ISA_TAX_FREE_GENERAL', 2000000),
+    (2026, 'ISA_TAX_FREE_LOW_INCOME', 4000000),
+    (2026, 'ISA_EXCESS_TAX_RATE', 0.099),
+    (2026, 'ISA_PENSION_TRANSFER_DAYS', 60),
+    (2026, 'ISA_PENSION_TRANSFER_CREDIT_RATE', 0.10),
+    (2026, 'ISA_PENSION_TRANSFER_CREDIT_MAX', 3000000),
+    (2026, 'FINANCIAL_INCOME_THRESHOLD', 20000000);
