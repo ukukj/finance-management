@@ -1,1 +1,2 @@
 org.springframework.test.context.TestExecutionListener=com.investment.dashboard.support.MutableClockResetListener
+org.springframework.boot.EnvironmentPostProcessor=com.investment.dashboard.support.TestLoginEnvironment
