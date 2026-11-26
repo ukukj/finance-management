@@ -4,6 +4,7 @@ import com.investment.dashboard.account.Account
 import com.investment.dashboard.account.AccountKind
 import com.investment.dashboard.account.AccountRepository
 import com.investment.dashboard.account.Broker
+import com.investment.dashboard.dividend.AutoProfileRefresher
 import com.investment.dashboard.fx.FxRate
 import com.investment.dashboard.fx.FxRateRepository
 import com.investment.dashboard.holding.Holding
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.Clock
+import java.time.LocalDate
 import java.time.OffsetDateTime
 
 @Component
@@ -27,6 +29,7 @@ class TossSnapshotWriter(
     private val holdingRepository: HoldingRepository,
     private val ledgerEntryRepository: LedgerEntryRepository,
     private val fxRateRepository: FxRateRepository,
+    private val autoProfileRefresher: AutoProfileRefresher,
     private val clock: Clock,
 ) {
 
@@ -44,6 +47,7 @@ class TossSnapshotWriter(
         ledgerEntryRepository.deleteByAccountIdAndSource(accountId, LedgerSource.TOSS)
         ledgerEntryRepository.saveAll(transactions.map { it.toLedgerEntry(accountId) })
         fxRateRepository.save(FxRate(USD, usdKrwRate, now))
+        autoProfileRefresher.refresh(accountId, LocalDate.now(clock))
     }
 
     private fun findOrCreate(account: TossAccount): Account = accountRepository.findByTossAccountSeq(account.accountSeq)
