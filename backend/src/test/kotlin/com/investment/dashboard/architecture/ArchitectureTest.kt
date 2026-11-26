@@ -17,6 +17,7 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
+import com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices
 import jakarta.persistence.Embeddable
 import jakarta.persistence.Entity
 import org.junit.jupiter.api.DisplayName
@@ -41,6 +42,13 @@ class ArchitectureTest {
             .orShould().callMethod(System::class.java, "currentTimeMillis")
             .orShould().callConstructor(Date::class.java)
             .orShould().dependOnClassesThat(systemClockTimestampAnnotation)
+            .check(mainClasses)
+    }
+
+    @Test
+    @DisplayName("최상위 패키지 사이에 순환 의존이 없다")
+    fun top_level_packages_are_free_of_cycles() {
+        slices().matching("com.investment.dashboard.(*)..").should().beFreeOfCycles()
             .check(mainClasses)
     }
 
