@@ -12,7 +12,10 @@ import com.investment.dashboard.holding.HoldingRepository
 import com.investment.dashboard.ledger.LedgerEntryRepository
 import com.investment.dashboard.support.MutableClock
 import com.investment.dashboard.support.TestClockConfiguration
+import com.investment.dashboard.sync.SyncRun
 import com.investment.dashboard.sync.SyncRunRepository
+import com.investment.dashboard.sync.SyncStatus
+import com.investment.dashboard.sync.SyncTrigger
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -93,5 +96,20 @@ class DashboardControllerTest {
             .expectBody()
             .jsonPath("$.headline.received.gross").isNumber()
             .jsonPath("$.headline.received.gross").isEqualTo(100000)
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("응답 JSON 의 sync 에 마지막 실행 시작 시각이 +09:00 시각으로 있다")
+    fun dashboard_json_has_sync_last_started_at_in_seoul_offset() {
+        syncRunRepository.save(
+            SyncRun(SyncTrigger.MANUAL, SyncStatus.RUNNING, OffsetDateTime.parse("2026-11-22T10:00+09:00")),
+        )
+
+        rest.get().uri("/api/dashboard")
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$.sync.lastStartedAt").isEqualTo("2026-11-22T10:00:00+09:00")
     }
 }

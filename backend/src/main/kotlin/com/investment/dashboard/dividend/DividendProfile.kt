@@ -30,7 +30,7 @@ class DividendProfile(
     @Column(comment = "지급 월 목록 (쉼표 구분, 예 3,6,9,12)")
     var payMonths: String,
 
-    @Column(comment = "세후/세전 비율 (수동 입력은 1)")
+    @Column(comment = "세후/세전 비율 (미래에셋 수동 입력은 1)")
     var netRatio: BigDecimal,
 ) {
     @Id

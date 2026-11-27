@@ -146,11 +146,11 @@ class DividendEstimatorTest {
     }
 
     @Test
-    @DisplayName("12개월보다 오래된 배당은 세후 비율에 넣지 않는다")
-    fun dividends_older_than_twelve_months_are_left_out_of_net_ratio() {
+    @DisplayName("마지막 배당일보다 12개월 넘게 앞선 배당은 세후 비율에 넣지 않는다")
+    fun dividends_more_than_twelve_months_before_last_dividend_are_left_out_of_net_ratio() {
         val entries = listOf(
             buy("SCHD", "100", "2025-06-02"),
-            dividend("SCHD", "100.0000", "50.0000", "USD", "2025-10-15"),
+            dividend("SCHD", "100.0000", "50.0000", "USD", "2025-08-15"),
             dividend("SCHD", "100.0000", "85.0000", "USD", "2026-09-15"),
         )
 
@@ -177,17 +177,17 @@ class DividendEstimatorTest {
     }
 
     @Test
-    @DisplayName("결제일이 정확히 12개월 전인 배당은 지급 월에 넣지 않는다")
-    fun dividend_paid_exactly_twelve_months_ago_is_not_a_pay_month() {
+    @DisplayName("마지막 배당일보다 정확히 12개월 앞선 배당은 세후 비율에 넣지 않는다")
+    fun dividend_exactly_twelve_months_before_last_dividend_is_left_out_of_net_ratio() {
         val entries = listOf(
             buy("SCHD", "100", "2025-06-02"),
-            dividendOn("SCHD", "2025-11-22"),
-            dividendOn("SCHD", "2026-05-22"),
+            dividend("SCHD", "100.0000", "50.0000", "USD", "2025-05-22"),
+            dividend("SCHD", "100.0000", "85.0000", "USD", "2026-05-22"),
         )
 
         val profile = DividendEstimator.autoProfile(entries, "SCHD", LocalDate.parse("2026-11-22"))
 
-        assertThat(profile?.payMonths).containsExactly(5)
+        assertThat(profile?.netRatio).isEqualByComparingTo("0.850000")
     }
 
     @Test
@@ -251,8 +251,8 @@ class DividendEstimatorTest {
     }
 
     @Test
-    @DisplayName("마지막 배당이 12개월보다 오래되면 자동 추정이 없다")
-    fun no_auto_profile_when_last_dividend_is_older_than_twelve_months() {
+    @DisplayName("마지막 배당이 13개월보다 오래되면 자동 추정이 없다")
+    fun no_auto_profile_when_last_dividend_is_older_than_thirteen_months() {
         val entries = listOf(
             buy("SCHD", "100", "2025-06-02"),
             dividend("SCHD", "36.0000", "30.6000", "USD", "2025-10-01"),
@@ -261,6 +261,73 @@ class DividendEstimatorTest {
         val profile = DividendEstimator.autoProfile(entries, "SCHD", LocalDate.parse("2026-11-22"))
 
         assertThat(profile).isNull()
+    }
+
+    @Test
+    @DisplayName("마지막 배당이 정확히 13개월 전이면 자동 추정이 없다")
+    fun no_auto_profile_when_last_dividend_is_exactly_thirteen_months_ago() {
+        val entries = listOf(
+            buy("SCHD", "100", "2025-06-02"),
+            dividend("SCHD", "36.0000", "30.6000", "USD", "2025-10-22"),
+        )
+
+        val profile = DividendEstimator.autoProfile(entries, "SCHD", LocalDate.parse("2026-11-22"))
+
+        assertThat(profile).isNull()
+    }
+
+    @Test
+    @DisplayName("마지막 배당이 13개월 전보다 하루 뒤면 자동 추정이 있다")
+    fun auto_profile_exists_when_last_dividend_is_a_day_inside_thirteen_months() {
+        val entries = listOf(
+            buy("SCHD", "100", "2025-06-02"),
+            dividend("SCHD", "36.0000", "30.6000", "USD", "2025-10-23"),
+        )
+
+        val profile = DividendEstimator.autoProfile(entries, "SCHD", LocalDate.parse("2026-11-22"))
+
+        assertThat(profile?.perShare).isEqualByComparingTo("0.360000")
+    }
+
+    @Test
+    @DisplayName("올해 회차 결제일이 작년 회차보다 늦어 아직 안 들어왔어도 작년 회차의 달을 지급 월에 넣는다")
+    fun last_years_pay_month_stays_while_this_years_later_round_is_pending() {
+        val entries = listOf(
+            buy("SCHD", "100", "2025-06-02"),
+            dividendOn("SCHD", "2025-11-03"),
+            dividendOn("SCHD", "2026-10-05"),
+        )
+
+        val profile = DividendEstimator.autoProfile(entries, "SCHD", LocalDate.parse("2026-11-04"))
+
+        assertThat(profile?.payMonths).containsExactly(10, 11)
+    }
+
+    @Test
+    @DisplayName("연 1회 종목은 올해 회차가 들어오기 전에도 작년 회차로 자동 추정하고 그 달을 지급 월로 쓴다")
+    fun yearly_payer_keeps_auto_profile_before_this_years_round() {
+        val entries = listOf(
+            buy("SCHD", "100", "2025-01-02"),
+            dividend("SCHD", "36.0000", "30.6000", "USD", "2025-04-18"),
+        )
+
+        val profile = DividendEstimator.autoProfile(entries, "SCHD", LocalDate.parse("2026-04-20"))
+
+        assertThat(profile?.payMonths).containsExactly(4)
+    }
+
+    @Test
+    @DisplayName("세후 비율은 오늘이 아니라 마지막 배당일부터 거슬러 12개월 안의 배당으로 낸다")
+    fun net_ratio_uses_twelve_months_up_to_last_dividend() {
+        val entries = listOf(
+            buy("SCHD", "100", "2025-06-02"),
+            dividend("SCHD", "100.0000", "50.0000", "USD", "2025-11-03"),
+            dividend("SCHD", "100.0000", "100.0000", "USD", "2026-10-05"),
+        )
+
+        val profile = DividendEstimator.autoProfile(entries, "SCHD", LocalDate.parse("2026-11-04"))
+
+        assertThat(profile?.netRatio).isEqualByComparingTo("0.750000")
     }
 
     @Test
