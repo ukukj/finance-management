@@ -1,6 +1,8 @@
 package com.investment.dashboard.dividend
 
+import com.investment.dashboard.account.Account
 import com.investment.dashboard.account.AccountRepository
+import com.investment.dashboard.account.Broker
 import com.investment.dashboard.account.requireAccount
 import com.investment.dashboard.common.InvalidRequestException
 import com.investment.dashboard.holding.HoldingRepository
@@ -25,15 +27,14 @@ class DividendProfileService(
 
     @Transactional
     fun putProfile(accountId: Long, symbol: String, request: PutDividendProfileRequest) {
-        accountRepository.requireAccount(accountId)
+        val account = accountRepository.requireAccount(accountId)
         val payMonths = payMonthsOf(request.payMonths)
         val currency = holdingRepository.findByAccountIdAndSymbol(accountId, symbol)?.currency ?: KRW
         val profile = profileRepository.findByAccountIdAndSymbol(accountId, symbol)
-            ?: DividendProfile(accountId, symbol, request.perShare, currency, payMonths, BigDecimal.ONE)
+            ?: DividendProfile(accountId, symbol, request.perShare, currency, payMonths, newNetRatio(account, currency))
         profile.perShare = request.perShare
         profile.currency = currency
         profile.payMonths = payMonths
-        profile.netRatio = BigDecimal.ONE
         saveManual(profile)
     }
 
@@ -48,6 +49,15 @@ class DividendProfileService(
             ?: DividendProfile(accountId, symbol, perShare, KRW, "${date.monthValue}", BigDecimal.ONE)
         profile.perShare = perShare
         saveManual(profile)
+    }
+
+    private fun newNetRatio(account: Account, currency: String): BigDecimal = when (account.broker) {
+        Broker.TOSS -> {
+            val entries = ledgerEntryRepository.findByAccountIdOrderBySettlementDateAsc(checkNotNull(account.id))
+            DividendEstimator.accountNetRatio(entries, currency, LocalDate.now(clock)) ?: BigDecimal.ONE
+        }
+
+        Broker.MIRAE -> BigDecimal.ONE
     }
 
     private fun laterDividendExists(accountId: Long, symbol: String, date: LocalDate): Boolean {

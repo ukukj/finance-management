@@ -136,6 +136,34 @@ class SyncApiTest {
     }
 
     @Test
+    @WithMockUser
+    @DisplayName("GET /api/sync/latest 는 마지막 실행의 시작 시각을 +09:00 시각으로 준다")
+    fun latest_returns_start_time_of_last_run_in_seoul_offset() {
+        syncRun(SyncStatus.SUCCEEDED, "2026-11-21T03:00+09:00", "2026-11-21T03:02+09:00", null)
+        runningSyncRun("2026-11-22T10:00+09:00")
+
+        rest.get().uri("/api/sync/latest")
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$.lastStatus").isEqualTo("RUNNING")
+            .jsonPath("$.lastStartedAt").isEqualTo("2026-11-22T10:00:00+09:00")
+    }
+
+    @Test
+    @WithMockUser
+    @DisplayName("GET /api/sync/latest 의 마지막 성공 시각은 +09:00 시각이다")
+    fun latest_returns_last_succeeded_at_in_seoul_offset() {
+        syncRun(SyncStatus.SUCCEEDED, "2026-11-21T03:00+09:00", "2026-11-21T03:02+09:00", null)
+
+        rest.get().uri("/api/sync/latest")
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$.lastSucceededAt").isEqualTo("2026-11-21T03:02:00+09:00")
+    }
+
+    @Test
     @DisplayName("API 모드에는 sync 러너가 없어 기동할 때 동기화하지 않는다")
     fun api_mode_has_no_sync_runner() {
         val runners = context.getBeanNamesForType(SyncModeRunner::class.java)
@@ -159,6 +187,10 @@ class SyncApiTest {
                 this.failureReason = failureReason
             },
         )
+    }
+
+    private fun runningSyncRun(startedAt: String) {
+        syncRunRepository.save(SyncRun(SyncTrigger.MANUAL, SyncStatus.RUNNING, OffsetDateTime.parse(startedAt)))
     }
 }
 

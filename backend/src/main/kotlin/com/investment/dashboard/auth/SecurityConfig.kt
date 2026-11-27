@@ -1,5 +1,6 @@
 package com.investment.dashboard.auth
 
+import jakarta.servlet.DispatcherType
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -13,6 +14,7 @@ import org.springframework.security.oauth2.server.resource.web.DefaultBearerToke
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher
+import org.springframework.security.web.util.matcher.DispatcherTypeRequestMatcher
 import org.springframework.security.web.util.matcher.OrRequestMatcher
 import org.springframework.security.web.util.matcher.RequestMatcher
 
@@ -25,6 +27,7 @@ class SecurityConfig {
         val publicAuthPaths = publicAuthPaths()
         http {
             authorizeHttpRequests {
+                authorize(DispatcherTypeRequestMatcher(DispatcherType.ERROR), permitAll)
                 authorize(publicAuthPaths, permitAll)
                 authorize("/actuator/health/**", permitAll)
                 if (environment.matchesProfiles("local")) {

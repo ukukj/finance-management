@@ -15,25 +15,33 @@ object DividendEstimator {
         val payouts = entries
             .filter { it.symbol == symbol && it.isValidDividend(today) }
             .map { it.toPayout() }
-        val windowStart = today.minusMonths(RECENT_MONTHS)
-        val recent = payouts.filter { it.date.isAfter(windowStart) }
+        val lastPaid = payouts.maxOfOrNull { it.date }
         val latestHeld = payouts.groupBy { it.date }.entries
             .sortedByDescending { it.key }
             .asSequence()
             .map { (date, sameDay) -> HeldRound(date, sameDay, PositionReplay.quantityAt(entries, symbol, date)) }
             .firstOrNull { it.quantity.signum() > 0 }
-        if (recent.isEmpty() || latestHeld == null) {
+        if (lastPaid == null || !lastPaid.isAfter(today.minusMonths(STALE_MONTHS)) || latestHeld == null) {
             return null
         }
+        val windowStart = lastPaid.minusMonths(RECENT_MONTHS)
+        val recent = payouts.filter { it.date.isAfter(windowStart) }
         return AutoProfile(
             symbol = symbol,
             currency = latestHeld.currency,
             perShare = latestHeld.amount.divide(latestHeld.quantity, RATIO_SCALE, RoundingMode.HALF_UP),
             payMonths = recent.map { it.date.monthValue }.toSortedSet(),
-            netRatio = recent.sumOf { it.netAmount }
-                .divide(recent.sumOf { it.amount }, RATIO_SCALE, RoundingMode.HALF_UP),
+            netRatio = recent.netRatio(),
             perShareBasisDate = latestHeld.date,
         )
+    }
+
+    fun accountNetRatio(entries: List<LedgerEntry>, currency: String, today: LocalDate): BigDecimal? {
+        val windowStart = today.minusMonths(RECENT_MONTHS)
+        val payouts = entries
+            .filter { it.currency == currency && it.isValidDividend(today) && it.settlementDate.isAfter(windowStart) }
+            .map { it.toPayout() }
+        return if (payouts.isEmpty()) null else payouts.netRatio()
     }
 
     fun forecast(
@@ -67,6 +75,10 @@ private class HeldRound(val date: LocalDate, sameDay: List<Payout>, val quantity
 private fun LedgerEntry.toPayout(): Payout =
     Payout(settlementDate, checkNotNull(amount), checkNotNull(netAmount), currency)
 
+private fun List<Payout>.netRatio(): BigDecimal =
+    sumOf { it.netAmount }.divide(sumOf { it.amount }, RATIO_SCALE, RoundingMode.HALF_UP)
+
 private const val RECENT_MONTHS = 12L
+private const val STALE_MONTHS = 13L
 private const val RATIO_SCALE = 6
 private const val MONEY_SCALE = 4

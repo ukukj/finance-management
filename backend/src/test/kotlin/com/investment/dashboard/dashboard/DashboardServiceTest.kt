@@ -548,6 +548,14 @@ class DashboardServiceTest {
     }
 
     @Test
+    @DisplayName("동기화 기록이 없으면 마지막 실행 시작 시각이 비어 있다")
+    fun last_started_at_is_empty_without_sync_runs() {
+        val sync = dashboardService.build().sync
+
+        assertThat(sync.lastStartedAt).isNull()
+    }
+
+    @Test
     @DisplayName("마지막 실행이 실패면 상태와 사유를 같이 준다")
     fun last_failed_run_gives_status_and_reason() {
         syncRun(SyncStatus.FAILED, "2026-11-22T03:00+09:00", "2026-11-22T03:00:30+09:00", "동기화 실패: 토스 응답 지연")

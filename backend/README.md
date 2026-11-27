@@ -66,7 +66,7 @@ curl -sS http://localhost:8080/api/sync/latest -H "Authorization: Bearer $TOKEN"
 - `POST /api/sync` 는 동기화를 기다리지 않고 본문 없는 202 를 준다. 동기화는 앱 안의 `sync-1` 스레드에서 돈다. 토큰이 없으면 401 이다.
 - 동기화가 도는 중에 다시 부르면 끝난 뒤 한 번 더 돈다. 이미 하나가 기다리는 중이면 그 요청은 버린다(응답은 그대로 202).
 - 앱을 멈출 때 도는 동기화는 최대 30초 기다리고, 기다리던 동기화는 버린다.
-- `GET /api/sync/latest` 는 마지막 실행의 상태와 사유를 준다. 토스 키 없이 실행했다면 `{"lastSucceededAt":null,"lastStatus":"FAILED","lastFailureReason":"동기화 실패: 토스 키 없음"}` 이다.
+- `GET /api/sync/latest` 는 마지막 실행의 상태·시작 시각·사유를 준다. 시각은 `+09:00` 이다. 토스 키 없이 실행했다면 `{"lastSucceededAt":null,"lastStatus":"FAILED","lastStartedAt":"2026-11-27T21:05:12.345678+09:00","lastFailureReason":"동기화 실패: 토스 키 없음"}` 꼴이다. `lastStartedAt` 값은 실행한 시각에 따라 다르다.
 
 ## sync 모드
 
