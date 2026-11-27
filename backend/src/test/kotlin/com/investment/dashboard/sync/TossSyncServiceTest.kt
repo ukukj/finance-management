@@ -28,10 +28,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Primary
 import org.springframework.dao.QueryTimeoutException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.jdbc.core.JdbcTemplate
@@ -43,7 +40,7 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 
 @SpringBootTest
-@Import(TestcontainersConfiguration::class, TestClockConfiguration::class)
+@Import(TestcontainersConfiguration::class, TestClockConfiguration::class, FakeSyncConfiguration::class)
 class TossSyncServiceTest {
 
     @Autowired
@@ -438,22 +435,6 @@ class TossSyncServiceTest {
                 amount = BigDecimal("1000000")
                 netAmount = BigDecimal("1000000")
             }
-
-    @TestConfiguration(proxyBeanMethods = false)
-    class FakeTossConfiguration {
-
-        @Bean
-        @Primary
-        fun fakeTossApi() = FakeTossApi()
-
-        @Bean
-        @Primary
-        fun fakePublicIpLookup() = FakePublicIpLookup()
-
-        @Bean
-        @Primary
-        fun recordingSyncFailureNotifier() = RecordingSyncFailureNotifier()
-    }
 }
 
 private const val SYNC_ADVISORY_LOCK_COUNT_SQL =
